@@ -1,0 +1,115 @@
+package com.libri.app.repository
+
+import com.libri.app.data.dao.UserDao
+import com.libri.app.data.entity.UserEntity
+import com.libri.app.data.entity.UserRole
+import com.libri.app.data.remote.api.AuthApi
+import com.libri.app.data.remote.dto.LoginRequest
+import com.libri.app.data.remote.dto.RegisterRequest
+import com.libri.app.domain.model.User
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class AuthRepository @Inject constructor(
+    private val authApi: AuthApi,
+    private val userDao: UserDao,
+    private val sessionManager: SessionManager
+) {
+    val currentUserId: Flow<Long?> = sessionManager.userId
+    val currentUserRole: Flow<UserRole?> = sessionManager.userRole
+
+    suspend fun login(email: String, password: String): Result<UserEntity> = runCatching {
+        val response = authApi.login(LoginRequest(email.trim().lowercase(), password))
+        val role = runCatching { UserRole.valueOf(response.role) }.getOrDefault(UserRole.READER)
+
+        // кэшируем пользователя локально
+        val entity = UserEntity(
+            id = response.userId,
+            email = response.email,
+            passwordHash = "",
+            firstName = response.firstName,
+            lastName = response.lastName,
+            role = role,
+            registrationDate = LocalDate.now()
+        )
+        userDao.insertOrReplace(entity)
+
+        sessionManager.saveSession(
+            userId = response.userId,
+            role = role,
+            token = response.token,
+            firstName = response.firstName,
+            lastName = response.lastName,
+            email = response.email
+        )
+        entity
+    }
+
+    suspend fun register(
+        email: String,
+        password: String,
+        firstName: String,
+        lastName: String,
+        phone: String?,
+        city: String? = null,
+        role: UserRole = UserRole.READER
+    ): Result<UserEntity> = runCatching {
+        val response = authApi.register(
+            RegisterRequest(
+                email = email.trim().lowercase(),
+                password = password,
+                firstName = firstName.trim(),
+                lastName = lastName.trim(),
+                phone = phone?.takeIf { it.isNotBlank() }
+            )
+        )
+        val userRole = runCatching { UserRole.valueOf(response.role) }.getOrDefault(UserRole.READER)
+        val entity = UserEntity(
+            id = response.userId,
+            email = response.email,
+            passwordHash = "",
+            firstName = response.firstName,
+            lastName = response.lastName,
+            role = userRole,
+            registrationDate = LocalDate.now()
+        )
+        userDao.insertOrReplace(entity)
+        sessionManager.saveSession(
+            userId = response.userId,
+            role = userRole,
+            token = response.token,
+            firstName = response.firstName,
+            lastName = response.lastName,
+            email = response.email
+        )
+        entity
+    }
+
+    suspend fun logout() = sessionManager.clearSession()
+
+    suspend fun getCurrentUser(id: Long): User? = userDao.findById(id)?.toDomain()
+
+    fun hashPassword(password: String): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        return digest.digest(password.toByteArray()).joinToString("") { "%02x".format(it) }
+    }
+
+    fun getAllReaders(): Flow<List<User>> = userDao.getAllReaders().map { list ->
+        list.map { it.toDomain() }
+    }
+
+    private fun UserEntity.toDomain() = User(
+        id = id,
+        email = email,
+        firstName = firstName,
+        lastName = lastName,
+        phone = phone,
+        role = role,
+        registrationDate = registrationDate,
+        city = city
+    )
+}
