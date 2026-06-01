@@ -53,6 +53,7 @@ import androidx.navigation.NavController
 import com.libri.app.presentation.theme.Background
 import com.libri.app.presentation.theme.ErrorColor
 import com.libri.app.presentation.theme.OnBackground
+import com.libri.app.presentation.theme.OnPrimary
 import com.libri.app.presentation.theme.Primary
 import com.libri.app.presentation.theme.Surface
 
@@ -161,7 +162,7 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = OnPrimary),
                 enabled = !uiState.isLoading
             ) {
                 if (uiState.isLoading) {

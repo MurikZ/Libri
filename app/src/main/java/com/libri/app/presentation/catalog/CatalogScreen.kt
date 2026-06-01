@@ -184,12 +184,8 @@ fun CatalogScreen(
     if (showAddDialog) {
         AddBookDialog(
             onDismiss = { showAddDialog = false },
-            onConfirm = { title, desc, year, isbn, publisher, authorsRaw ->
-                val authors = authorsRaw.split(",")
-                    .map { it.trim().split(" ") }
-                    .filter { it.size >= 2 }
-                    .map { it[0] to it.drop(1).joinToString(" ") }
-                viewModel.showMessage("Книга «$title» добавлена")
+            onConfirm = { title, desc, year, isbn, publisher, authorsRaw, coverUri, fragment ->
+                viewModel.addBook(title, desc, year, isbn, publisher, authorsRaw, coverUri, fragment)
                 showAddDialog = false
             }
         )

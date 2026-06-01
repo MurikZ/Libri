@@ -49,9 +49,9 @@ class DataPreloader @Inject constructor(
                 role = UserRole.READER, registrationDate = today.minusMonths(6))
         )
         userDao.insert(
-            UserEntity(email = "librarian@lib.ru", passwordHash = hash,
+            UserEntity(email = "admin2@lib.ru", passwordHash = hash,
                 firstName = "Мария", lastName = "Сидорова",
-                role = UserRole.LIBRARIAN, registrationDate = today.minusYears(2))
+                role = UserRole.ADMIN, registrationDate = today.minusYears(2))
         )
         userDao.insert(
             UserEntity(email = "admin@lib.ru", passwordHash = hash,

@@ -31,7 +31,9 @@ data class Book(
     val publisher: String?,
     val availableInstances: Int,
     val totalInstances: Int,
-    val status: BookStatus
+    val status: BookStatus,
+    val coverImageUri: String? = null,
+    val fragment: String? = null
 )
 
 data class Loan(

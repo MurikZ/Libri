@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -67,6 +70,8 @@ fun BookDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showFragment by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(bookId) { viewModel.loadBook(bookId, userId) }
     LaunchedEffect(uiState.message, uiState.error) {
@@ -102,6 +107,7 @@ fun BookDetailScreen(
                     Text("Книга не найдена", color = OnBackground.copy(0.6f))
                 }
             } else {
+                val hasFragment = !book.fragment.isNullOrBlank()
                 val hasAction = userRole == UserRole.READER &&
                         (book.status == BookStatus.AVAILABLE && uiState.reservation == null ||
                                 uiState.reservation?.status == ReservationStatus.ACTIVE)
@@ -191,7 +197,7 @@ fun BookDetailScreen(
                     }
 
                     // Sticky action buttons
-                    if (hasAction) {
+                    if (hasAction || hasFragment) {
                         Surface(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
@@ -205,25 +211,30 @@ fun BookDetailScreen(
                                     .navigationBarsPadding(),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
+                                if (hasFragment) {
+                                    OutlinedButton(
+                                        onClick = { showFragment = true },
+                                        modifier = Modifier.weight(1f).height(52.dp),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Text("Читать фрагмент", color = Primary)
+                                    }
+                                }
                                 when {
-                                    book.status == BookStatus.AVAILABLE && uiState.reservation == null -> {
+                                    hasAction && book.status == BookStatus.AVAILABLE && uiState.reservation == null -> {
                                         Button(
                                             onClick = { viewModel.reserve(userId, bookId) },
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(52.dp),
+                                            modifier = Modifier.weight(1f).height(52.dp),
                                             shape = RoundedCornerShape(12.dp),
-                                            colors = ButtonDefaults.buttonColors(containerColor = Primary)
+                                            colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = androidx.compose.ui.graphics.Color.White)
                                         ) {
                                             Text("Забронировать", fontWeight = FontWeight.SemiBold)
                                         }
                                     }
-                                    uiState.reservation?.status == ReservationStatus.ACTIVE -> {
+                                    hasAction && uiState.reservation?.status == ReservationStatus.ACTIVE -> {
                                         OutlinedButton(
                                             onClick = { viewModel.cancelReservation(userId, bookId) },
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(52.dp),
+                                            modifier = Modifier.weight(1f).height(52.dp),
                                             shape = RoundedCornerShape(12.dp)
                                         ) {
                                             Text("Отменить бронь", color = ErrorColor)
@@ -234,6 +245,33 @@ fun BookDetailScreen(
                         }
                     }
                 }
+            }
+        }
+    }
+
+    if (showFragment && uiState.book?.fragment != null) {
+        ModalBottomSheet(
+            onDismissRequest = { showFragment = false },
+            sheetState = bottomSheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(start = 24.dp, end = 24.dp, bottom = 48.dp)
+            ) {
+                Text(
+                    "Фрагмент",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    uiState.book!!.fragment!!,
+                    style = MaterialTheme.typography.bodyMedium,
+                    lineHeight = 24.sp,
+                    color = OnBackground
+                )
             }
         }
     }

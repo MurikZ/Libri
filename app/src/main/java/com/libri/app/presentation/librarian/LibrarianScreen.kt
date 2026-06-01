@@ -188,7 +188,7 @@ fun IssueLoanSection(viewModel: LibrarianViewModel) {
                 .fillMaxWidth()
                 .height(48.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Primary),
+            colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = androidx.compose.ui.graphics.Color.White),
             enabled = selectedReaderId > 0 && selectedBookId > 0
         ) {
             Text("Выдать книгу", fontWeight = FontWeight.SemiBold)
@@ -226,7 +226,7 @@ fun ReturnLoanSection(loans: List<Loan>, onReturn: (Long) -> Unit) {
                     }
                     Button(
                         onClick = { onReturn(loan.id) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                        colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = androidx.compose.ui.graphics.Color.White),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                     ) { Text("Вернуть", fontSize = 12.sp) }
                 }

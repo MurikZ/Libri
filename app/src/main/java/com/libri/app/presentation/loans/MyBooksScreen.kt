@@ -293,7 +293,7 @@ fun FinesSection(fines: List<Fine>, onPayFine: (Long) -> Unit) {
                 Spacer(Modifier.width(8.dp))
                 Button(
                     onClick = { onPayFine(fine.id) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = androidx.compose.ui.graphics.Color.White),
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                 ) { Text("Оплатить", fontSize = 12.sp) }
             }

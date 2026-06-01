@@ -58,6 +58,7 @@ import androidx.navigation.NavController
 import com.libri.app.data.entity.UserRole
 import com.libri.app.presentation.theme.Background
 import com.libri.app.presentation.theme.ErrorColor
+import com.libri.app.presentation.theme.OnPrimary
 import com.libri.app.presentation.theme.Primary
 import com.libri.app.presentation.theme.Surface
 
@@ -190,7 +191,7 @@ fun RegisterScreen(
             )
 
             Text("Роль", style = MaterialTheme.typography.titleMedium)
-            listOf(UserRole.READER to "Читатель", UserRole.LIBRARIAN to "Библиотекарь", UserRole.ADMIN to "Администратор")
+            listOf(UserRole.READER to "Читатель", UserRole.ADMIN to "Администратор")
                 .forEach { (role, label) ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -219,7 +220,7 @@ fun RegisterScreen(
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = OnPrimary),
                 enabled = !uiState.isLoading
             ) {
                 if (uiState.isLoading) {

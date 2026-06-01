@@ -69,7 +69,7 @@ fun MainNavHost(userId: Long, userRole: UserRole, onLogout: () -> Unit) {
 
     val items = buildList {
         add(BottomNavItem.Catalog)
-        add(BottomNavItem.MyBooks)
+        if (userRole == UserRole.READER) add(BottomNavItem.MyBooks)
         add(BottomNavItem.Profile)
         if (userRole != UserRole.READER) add(BottomNavItem.Librarian)
     }

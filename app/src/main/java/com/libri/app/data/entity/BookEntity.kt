@@ -15,7 +15,9 @@ data class BookEntity(
     val description: String? = null,
     val publicationYear: Int,
     val isbn: String,
-    val publisher: String? = null
+    val publisher: String? = null,
+    val coverImageUri: String? = null,
+    val fragment: String? = null
 )
 
 @Entity(tableName = "authors")

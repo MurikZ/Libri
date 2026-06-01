@@ -71,6 +71,22 @@ class CatalogViewModel @Inject constructor(
     fun onSearchQueryChange(query: String) = _searchQuery.update { query }
     fun onFilterChange(filter: CatalogFilter) = _filter.update { filter }
 
+    fun addBook(
+        title: String, description: String?, year: Int, isbn: String,
+        publisher: String?, authorsRaw: String, coverUri: String?, fragment: String?
+    ) {
+        viewModelScope.launch {
+            val authors = authorsRaw.split(",")
+                .map { it.trim().split(" ") }
+                .filter { it.size >= 2 }
+                .map { it[0] to it.drop(1).joinToString(" ") }
+            runCatching {
+                bookRepository.addBook(title, description, year, isbn, publisher, authors, coverUri, fragment)
+            }.onSuccess { showMessage("Книга «$title» добавлена") }
+             .onFailure { showMessage("Ошибка: ${it.message}") }
+        }
+    }
+
     fun deleteBook(bookId: Long) {
         viewModelScope.launch {
             bookRepository.deleteBook(bookId)

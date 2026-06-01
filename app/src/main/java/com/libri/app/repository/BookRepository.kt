@@ -67,20 +67,43 @@ class BookRepository @Inject constructor(
         publicationYear: Int,
         isbn: String,
         publisher: String?,
-        authorNames: List<Pair<String, String>>
+        authorNames: List<Pair<String, String>>,
+        coverImageUri: String? = null,
+        fragment: String? = null
     ): Long {
-        val response = bookApi.createBook(
-            CreateBookRequest(
-                title = title,
-                isbn = isbn.takeIf { it.isNotBlank() },
-                publicationYear = publicationYear,
-                publisher = publisher,
-                description = description,
-                instanceCount = 2
+        return try {
+            val response = bookApi.createBook(
+                CreateBookRequest(
+                    title = title,
+                    isbn = isbn.takeIf { it.isNotBlank() },
+                    publicationYear = publicationYear,
+                    publisher = publisher,
+                    description = description,
+                    instanceCount = 2
+                )
             )
-        )
-        cacheBook(response)
-        return response.id
+            cacheBook(response)
+            if (coverImageUri != null || fragment != null) {
+                bookDao.getBook(response.id)?.let { cached ->
+                    bookDao.upsertBook(cached.copy(coverImageUri = coverImageUri, fragment = fragment))
+                }
+            }
+            response.id
+        } catch (_: Exception) {
+            val bookId = bookDao.insertBook(
+                BookEntity(
+                    title = title, description = description,
+                    publicationYear = publicationYear, isbn = isbn,
+                    publisher = publisher, coverImageUri = coverImageUri, fragment = fragment
+                )
+            )
+            authorNames.forEach { (fn, ln) ->
+                val existing = bookDao.findAuthorByName(fn, ln)
+                val authorId = existing?.id ?: bookDao.insertAuthor(AuthorEntity(firstName = fn, lastName = ln))
+                bookDao.insertBookAuthorCrossRef(BookAuthorCrossRef(bookId = bookId, authorId = authorId))
+            }
+            bookId
+        }
     }
 
     suspend fun deleteBook(bookId: Long) {
@@ -139,7 +162,9 @@ class BookRepository @Inject constructor(
             publisher = book.publisher,
             availableInstances = available,
             totalInstances = instances.size,
-            status = status
+            status = status,
+            coverImageUri = book.coverImageUri,
+            fragment = book.fragment
         )
     }
 
