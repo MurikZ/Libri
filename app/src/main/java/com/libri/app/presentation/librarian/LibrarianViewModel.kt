@@ -61,10 +61,10 @@ class LibrarianViewModel @Inject constructor(
         }
     }
 
-    fun issueLoan(userId: Long, bookId: Long) {
+    fun issueLoan(userId: Long, bookId: Long, durationDays: Int = 30) {
         viewModelScope.launch {
-            loanRepository.issueBookToUser(userId, bookId)
-                .onSuccess { showMessage("Книга выдана") }
+            loanRepository.issueBookToUser(userId, bookId, durationDays)
+                .onSuccess { showMessage("Книга выдана на $durationDays дней") }
                 .onFailure { e -> showError(e.message ?: "Ошибка") }
         }
     }

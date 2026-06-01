@@ -2,6 +2,7 @@ package com.libri.app.presentation.catalog
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.libri.app.data.entity.BookInstanceEntity
 import com.libri.app.data.entity.ReservationEntity
 import com.libri.app.domain.model.Book
 import com.libri.app.domain.model.Loan
@@ -22,8 +23,10 @@ data class BookDetailUiState(
     val isLoading: Boolean = true,
     val reservation: ReservationEntity? = null,
     val activeLoans: List<Loan> = emptyList(),
+    val instances: List<BookInstanceEntity> = emptyList(),
     val message: String? = null,
-    val error: String? = null
+    val error: String? = null,
+    val isDeleted: Boolean = false
 )
 
 @HiltViewModel
@@ -42,7 +45,8 @@ class BookDetailViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             val book = bookRepository.getBook(bookId)
             val reservation = reservationRepository.findUserReservationForBook(userId, bookId)
-            _uiState.update { it.copy(book = book, isLoading = false, reservation = reservation) }
+            val instances = bookRepository.getInstances(bookId)
+            _uiState.update { it.copy(book = book, isLoading = false, reservation = reservation, instances = instances) }
         }
     }
 
@@ -67,6 +71,25 @@ class BookDetailViewModel @Inject constructor(
                     _uiState.update { it.copy(reservation = null, book = book, message = "Бронь отменена") }
                 }
                 .onFailure { e -> _uiState.update { it.copy(error = e.message) } }
+        }
+    }
+
+    fun addInstance(bookId: Long, inventoryNumber: String) {
+        viewModelScope.launch {
+            bookRepository.addInstance(bookId, inventoryNumber)
+                .onSuccess {
+                    val instances = bookRepository.getInstances(bookId)
+                    val book = bookRepository.getBook(bookId)
+                    _uiState.update { it.copy(instances = instances, book = book, message = "Экземпляр добавлен") }
+                }
+                .onFailure { e -> _uiState.update { it.copy(error = e.message) } }
+        }
+    }
+
+    fun deleteBook(bookId: Long) {
+        viewModelScope.launch {
+            bookRepository.deleteBook(bookId)
+            _uiState.update { it.copy(isDeleted = true) }
         }
     }
 

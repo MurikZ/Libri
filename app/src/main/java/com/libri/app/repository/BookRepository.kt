@@ -106,6 +106,15 @@ class BookRepository @Inject constructor(
         }
     }
 
+    suspend fun getInstances(bookId: Long) = bookInstanceDao.getInstancesForBook(bookId)
+
+    suspend fun addInstance(bookId: Long, inventoryNumber: String): Result<Unit> = runCatching {
+        bookInstanceDao.insert(
+            BookInstanceEntity(bookId = bookId, inventoryNumber = inventoryNumber, status = BookStatus.AVAILABLE)
+        )
+        Unit
+    }
+
     suspend fun deleteBook(bookId: Long) {
         bookApi.deleteBook(bookId)
         val book = bookDao.getBook(bookId) ?: return

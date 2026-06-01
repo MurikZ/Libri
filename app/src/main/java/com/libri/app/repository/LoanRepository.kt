@@ -34,14 +34,14 @@ class LoanRepository @Inject constructor(
 
     suspend fun canBorrow(userId: Long): Boolean = loanDao.countActiveLoans(userId) < 5
 
-    suspend fun issueBookToUser(userId: Long, bookId: Long): Result<Unit> {
+    suspend fun issueBookToUser(userId: Long, bookId: Long, durationDays: Int = 30): Result<Unit> {
         if (!canBorrow(userId)) return Result.failure(Exception("Достигнут лимит выдач (5 книг)"))
         val instance = bookInstanceDao.findAvailableInstance(bookId)
             ?: return Result.failure(Exception("Нет доступных экземпляров"))
-        return createLoan(userId, instance.id)
+        return createLoan(userId, instance.id, durationDays)
     }
 
-    suspend fun createLoan(userId: Long, bookInstanceId: Long): Result<Unit> {
+    suspend fun createLoan(userId: Long, bookInstanceId: Long, durationDays: Int = 30): Result<Unit> {
         val instance = bookInstanceDao.findById(bookInstanceId)
             ?: return Result.failure(Exception("Экземпляр не найден"))
         if (instance.status != BookStatus.AVAILABLE) {
@@ -53,7 +53,7 @@ class LoanRepository @Inject constructor(
                 userId = userId,
                 bookInstanceId = bookInstanceId,
                 loanDate = today,
-                dueDate = today.plusDays(14),
+                dueDate = today.plusDays(durationDays.toLong()),
                 status = LoanStatus.ACTIVE
             )
         )

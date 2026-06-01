@@ -1,5 +1,6 @@
 package com.libri.app.presentation.auth
 
+import android.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -162,13 +164,14 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = OnPrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = Color.White),
                 enabled = !uiState.isLoading
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(color = Surface, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Text("Войти", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+
+                    Text("Войти", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color.White)
                 }
             }
 

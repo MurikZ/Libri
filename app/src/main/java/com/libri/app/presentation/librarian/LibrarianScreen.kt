@@ -30,6 +30,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -114,6 +117,7 @@ fun IssueLoanSection(viewModel: LibrarianViewModel) {
     var selectedBookId by remember { mutableLongStateOf(0L) }
     var selectedReaderName by remember { mutableStateOf("Выберите читателя") }
     var selectedBookTitle by remember { mutableStateOf("Выберите книгу") }
+    var selectedDays by remember { mutableIntStateOf(30) }
 
     SectionCard(title = "Выдача книги") {
         ExposedDropdownMenuBox(
@@ -178,10 +182,28 @@ fun IssueLoanSection(viewModel: LibrarianViewModel) {
 
         Spacer(Modifier.height(12.dp))
 
+        Text("Срок выдачи", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+        Spacer(Modifier.height(6.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(7, 14, 21, 30).forEach { days ->
+                FilterChip(
+                    selected = selectedDays == days,
+                    onClick = { selectedDays = days },
+                    label = { Text("$days дн.") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Primary,
+                        selectedLabelColor = androidx.compose.ui.graphics.Color.White
+                    )
+                )
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
         Button(
             onClick = {
                 if (selectedReaderId > 0 && selectedBookId > 0) {
-                    viewModel.issueLoan(selectedReaderId, selectedBookId)
+                    viewModel.issueLoan(selectedReaderId, selectedBookId, selectedDays)
                 }
             },
             modifier = Modifier
@@ -228,7 +250,7 @@ fun ReturnLoanSection(loans: List<Loan>, onReturn: (Long) -> Unit) {
                         onClick = { onReturn(loan.id) },
                         colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = androidx.compose.ui.graphics.Color.White),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                    ) { Text("Вернуть", fontSize = 12.sp) }
+                    ) { Text("Вернуть", fontSize = 12.sp,color = Color.White) }
                 }
             }
         }

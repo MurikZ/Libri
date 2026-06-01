@@ -1,5 +1,6 @@
 package com.libri.app.presentation.auth
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -220,13 +221,13 @@ fun RegisterScreen(
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = OnPrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = Color.White),
                 enabled = !uiState.isLoading
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(color = Surface, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Text("Зарегистрироваться", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                    Text("Зарегистрироваться", fontWeight = FontWeight.SemiBold, fontSize = 16.sp,color = Color.White)
                 }
             }
 

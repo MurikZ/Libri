@@ -215,7 +215,7 @@ fun ProfileScreen(
                 ) {
                     Icon(Icons.Default.ExitToApp, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Выйти", fontWeight = FontWeight.SemiBold)
+                    Text("Выйти", fontWeight = FontWeight.SemiBold,color = Color.White)
                 }
 
                 Spacer(Modifier.height(8.dp))
