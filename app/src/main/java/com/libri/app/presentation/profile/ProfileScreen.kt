@@ -53,6 +53,7 @@ import com.libri.app.data.entity.UserRole
 import com.libri.app.domain.model.Fine
 import com.libri.app.presentation.theme.Background
 import com.libri.app.presentation.theme.ErrorColor
+import com.libri.app.presentation.theme.LogoutColor
 import com.libri.app.presentation.theme.OnBackground
 import com.libri.app.presentation.theme.Primary
 import com.libri.app.presentation.theme.StatusAvailableBg
@@ -117,7 +118,7 @@ fun ProfileScreen(
                         ) {
                             Icon(Icons.Default.WifiOff, contentDescription = null, tint = Color(0xFFE65100))
                             Text(
-                                "Оффлайн-режим. Данные не синхронизированы с сервером.",
+                                "Аккаунт создан оффлайн и не синхронизирован с сервером.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFFE65100)
                             )
@@ -125,8 +126,8 @@ fun ProfileScreen(
                     }
                     Spacer(Modifier.height(12.dp))
                 }
+
                 uiState.user?.let { user ->
-                    // Avatar
                     Box(
                         modifier = Modifier
                             .size(80.dp)
@@ -148,7 +149,6 @@ fun ProfileScreen(
 
                     Spacer(Modifier.height(8.dp))
 
-                    // Role chip
                     val (roleBg, roleTextColor, roleLabel) = when (user.role) {
                         UserRole.READER -> Triple(StatusAvailableBg, StatusAvailableText, "Читатель")
                         UserRole.LIBRARIAN -> Triple(StatusOnLoanBg, StatusOnLoanText, "Библиотекарь")
@@ -165,7 +165,6 @@ fun ProfileScreen(
 
                     Spacer(Modifier.height(24.dp))
 
-                    // Info card
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
@@ -182,10 +181,13 @@ fun ProfileScreen(
                     Spacer(Modifier.height(24.dp))
                 }
 
-                // Fines section
                 if (uiState.fines.isNotEmpty()) {
-                    Text("Штрафы", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
-                        modifier = Modifier.align(Alignment.Start))
+                    Text(
+                        "Штрафы",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
                     Spacer(Modifier.height(8.dp))
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -203,19 +205,20 @@ fun ProfileScreen(
                     Spacer(Modifier.height(24.dp))
                 }
 
-                // Logout
                 Button(
                     onClick = onLogout,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = ErrorColor)
+                    colors = ButtonDefaults.buttonColors(containerColor = LogoutColor)
                 ) {
                     Icon(Icons.Default.ExitToApp, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text("Выйти", fontWeight = FontWeight.SemiBold)
                 }
+
+                Spacer(Modifier.height(8.dp))
             }
         }
     }
@@ -246,8 +249,11 @@ private fun FineRow(fine: Fine, onPay: () -> Unit) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(fine.reason, style = MaterialTheme.typography.bodyMedium)
-            Text(fine.calculatedDate.format(formatter), style = MaterialTheme.typography.bodySmall,
-                color = OnBackground.copy(0.6f))
+            Text(
+                fine.calculatedDate.format(formatter),
+                style = MaterialTheme.typography.bodySmall,
+                color = OnBackground.copy(0.6f)
+            )
         }
         Text(
             "${fine.amount.toInt()} руб.",

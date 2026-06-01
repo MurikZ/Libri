@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -91,6 +92,7 @@ fun MyBooksScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            Spacer(Modifier.height(4.dp))
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Background,
@@ -111,26 +113,27 @@ fun MyBooksScreen(
                 }
             }
 
-            when (selectedTab) {
-                0 -> LoansList(
-                    loans = uiState.activeLoans,
-                    emptyText = "Нет активных выдач"
-                )
-                1 -> ReservationsList(
-                    reservations = uiState.activeReservations,
-                    onCancel = viewModel::cancelReservation,
-                    emptyText = "Нет активных броней"
-                )
-                2 -> LoansList(
-                    loans = uiState.loanHistory,
-                    emptyText = "История пуста",
-                    showPayFine = false,
-                    fines = uiState.fines,
-                    onPayFine = viewModel::payFine
-                )
+            Box(modifier = Modifier.weight(1f)) {
+                when (selectedTab) {
+                    0 -> LoansList(
+                        loans = uiState.activeLoans,
+                        emptyText = "Нет активных выдач"
+                    )
+                    1 -> ReservationsList(
+                        reservations = uiState.activeReservations,
+                        onCancel = viewModel::cancelReservation,
+                        emptyText = "Нет активных броней"
+                    )
+                    2 -> LoansList(
+                        loans = uiState.loanHistory,
+                        emptyText = "История пуста",
+                        showPayFine = false,
+                        fines = uiState.fines,
+                        onPayFine = viewModel::payFine
+                    )
+                }
             }
 
-            // Fines section (show in tab 0 if there are unpaid fines)
             if (selectedTab == 0 && uiState.fines.any { !it.paid }) {
                 FinesSection(
                     fines = uiState.fines.filter { !it.paid },

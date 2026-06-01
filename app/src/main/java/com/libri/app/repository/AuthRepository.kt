@@ -163,6 +163,7 @@ class AuthRepository @Inject constructor(
         phone = phone,
         role = role,
         registrationDate = registrationDate,
-        city = city
+        city = city,
+        isSynced = isSynced
     )
 }

@@ -1,6 +1,7 @@
 package com.libri.app.presentation.navigation
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
@@ -77,6 +78,7 @@ fun MainNavHost(userId: Long, userRole: UserRole, onLogout: () -> Unit) {
             !currentRoute.orEmpty().startsWith("book_detail/")
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         bottomBar = {
             if (showBottomBar) {
                 BottomNavBar(navController = navController, items = items)

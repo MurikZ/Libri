@@ -1,6 +1,7 @@
 package com.libri.app.presentation.catalog
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,6 +29,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -50,6 +54,7 @@ import com.libri.app.presentation.theme.Background
 import com.libri.app.presentation.theme.ErrorColor
 import com.libri.app.presentation.theme.OnBackground
 import com.libri.app.presentation.theme.Primary
+import com.libri.app.presentation.theme.PrimaryVariant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +69,6 @@ fun BookDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(bookId) { viewModel.loadBook(bookId, userId) }
-
     LaunchedEffect(uiState.message, uiState.error) {
         (uiState.message ?: uiState.error)?.let {
             snackbarHostState.showSnackbar(it)
@@ -98,90 +102,133 @@ fun BookDetailScreen(
                     Text("Книга не найдена", color = OnBackground.copy(0.6f))
                 }
             } else {
-                Column(
+                val hasAction = userRole == UserRole.READER &&
+                        (book.status == BookStatus.AVAILABLE && uiState.reservation == null ||
+                                uiState.reservation?.status == ReservationStatus.ACTIVE)
+
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding)
-                        .verticalScroll(rememberScrollState())
                 ) {
-                    // Cover
-                    Box(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .background(
-                                Brush.verticalGradient(
-                                    listOf(Primary, Primary.copy(alpha = 0.6f))
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(bottom = if (hasAction) 88.dp else 16.dp)
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        // Cover
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .background(
+                                    Brush.verticalGradient(listOf(PrimaryVariant, Primary))
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = book.title.firstOrNull()?.uppercase() ?: "?",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 64.sp
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = book.authors.firstOrNull() ?: "",
+                                    color = Color.White.copy(0.8f),
+                                    fontSize = 13.sp
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                BookStatusChip(status = book.status)
+                            }
+                        }
+
+                        Column(modifier = Modifier.padding(20.dp)) {
                             Text(
-                                text = book.title.firstOrNull()?.uppercase() ?: "?",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 64.sp
+                                text = book.title,
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold
                             )
-                            Spacer(Modifier.height(8.dp))
-                            BookStatusChip(status = book.status)
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = book.authors.joinToString(", "),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Primary
+                            )
+
+                            Spacer(Modifier.height(20.dp))
+                            Divider(color = OnBackground.copy(0.1f))
+                            Spacer(Modifier.height(16.dp))
+
+                            InfoRow("Год издания", book.publicationYear.toString())
+                            book.publisher?.let { InfoRow("Издательство", it) }
+                            InfoRow("ISBN", book.isbn)
+                            InfoRow(
+                                "Доступно экземпляров",
+                                "${book.availableInstances} из ${book.totalInstances}"
+                            )
+
+                            book.description?.let { desc ->
+                                Spacer(Modifier.height(20.dp))
+                                Divider(color = OnBackground.copy(0.1f))
+                                Spacer(Modifier.height(16.dp))
+                                Text(
+                                    "Описание",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    desc,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = OnBackground.copy(0.85f),
+                                    lineHeight = 22.sp
+                                )
+                            }
                         }
                     }
 
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Text(
-                            text = book.title,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = book.authors.joinToString(", "),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Primary
-                        )
-
-                        Spacer(Modifier.height(16.dp))
-
-                        InfoRow("Год издания", book.publicationYear.toString())
-                        book.publisher?.let { InfoRow("Издательство", it) }
-                        InfoRow("ISBN", book.isbn)
-                        InfoRow("Доступно экземпляров", "${book.availableInstances} из ${book.totalInstances}")
-
-                        book.description?.let { desc ->
-                            Spacer(Modifier.height(16.dp))
-                            Text("Описание", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(4.dp))
-                            Text(desc, style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.8f))
-                        }
-
-                        Spacer(Modifier.height(24.dp))
-
-                        // Action buttons
-                        when {
-                            userRole == UserRole.READER && book.status == BookStatus.AVAILABLE &&
-                                    uiState.reservation == null -> {
-                                Button(
-                                    onClick = { viewModel.reserve(userId, bookId) },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(52.dp),
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Primary)
-                                ) {
-                                    Text("Забронировать", fontWeight = FontWeight.SemiBold)
-                                }
-                            }
-                            userRole == UserRole.READER &&
+                    // Sticky action buttons
+                    if (hasAction) {
+                        Surface(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .fillMaxWidth(),
+                            color = Background,
+                            shadowElevation = 8.dp
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                                    .navigationBarsPadding(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                when {
+                                    book.status == BookStatus.AVAILABLE && uiState.reservation == null -> {
+                                        Button(
+                                            onClick = { viewModel.reserve(userId, bookId) },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(52.dp),
+                                            shape = RoundedCornerShape(12.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = Primary)
+                                        ) {
+                                            Text("Забронировать", fontWeight = FontWeight.SemiBold)
+                                        }
+                                    }
                                     uiState.reservation?.status == ReservationStatus.ACTIVE -> {
-                                OutlinedButton(
-                                    onClick = { viewModel.cancelReservation(userId, bookId) },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(52.dp),
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    Text("Отменить бронь", color = ErrorColor)
+                                        OutlinedButton(
+                                            onClick = { viewModel.cancelReservation(userId, bookId) },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(52.dp),
+                                            shape = RoundedCornerShape(12.dp)
+                                        ) {
+                                            Text("Отменить бронь", color = ErrorColor)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -194,14 +241,22 @@ fun BookDetailScreen(
 
 @Composable
 private fun InfoRow(label: String, value: String) {
-    Row(modifier = Modifier.padding(vertical = 3.dp)) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
         Text(
-            text = "$label: ",
+            text = label,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            color = OnBackground.copy(0.6f)
+            color = OnBackground.copy(0.55f)
         )
-        Spacer(Modifier.width(4.dp))
-        Text(text = value, style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.width(16.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium
+        )
     }
 }

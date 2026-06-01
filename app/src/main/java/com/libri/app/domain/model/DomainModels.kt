@@ -14,7 +14,8 @@ data class User(
     val phone: String?,
     val role: UserRole,
     val registrationDate: LocalDate,
-    val city: String?
+    val city: String?,
+    val isSynced: Boolean = true
 ) {
     val fullName: String get() = "$firstName $lastName"
     val initials: String get() = "${firstName.firstOrNull() ?: ""}${lastName.firstOrNull() ?: ""}"
