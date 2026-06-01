@@ -20,10 +20,9 @@ data class ProfileUiState(
     val user: User? = null,
     val fines: List<Fine> = emptyList(),
     val isLoading: Boolean = true,
-    val message: String? = null
-) {
-    val isOffline: Boolean get() = user?.isSynced == false
-}
+    val message: String? = null,
+    val isOffline: Boolean = false
+)
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
@@ -37,9 +36,9 @@ class ProfileViewModel @Inject constructor(
     private val _message = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<ProfileUiState> = combine(
-        _user, _fines, _isLoading, _message
-    ) { user, fines, loading, message ->
-        ProfileUiState(user, fines, loading, message)
+        _user, _fines, _isLoading, _message, authRepository.isOfflineSession
+    ) { user, fines, loading, message, offlineSession ->
+        ProfileUiState(user, fines, loading, message, user?.isSynced == false || offlineSession)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),

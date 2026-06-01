@@ -253,7 +253,7 @@ fun ReservationsList(
                         }
                         Button(
                             onClick = { onCancel(reservation.id) },
-                            colors = ButtonDefaults.buttonColors(containerColor = ErrorColor),
+                            colors = ButtonDefaults.buttonColors(containerColor = ErrorColor, contentColor = androidx.compose.ui.graphics.Color.White),
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                         ) { Text("Отменить", fontSize = 12.sp) }
                     }

@@ -27,21 +27,24 @@ class AuthRepository @Inject constructor(
         val normalizedEmail = email.trim().lowercase()
         val onlineResult = runCatching {
             val response = authApi.login(LoginRequest(normalizedEmail, password))
-            val role = runCatching { UserRole.valueOf(response.role) }.getOrDefault(UserRole.READER)
+            val serverRole = runCatching { UserRole.valueOf(response.role) }.getOrDefault(UserRole.READER)
+            // Prefer locally-stored role (e.g., ADMIN) over server's READER default
+            val localUser = userDao.findByEmail(normalizedEmail)
+            val effectiveRole = if (localUser != null && localUser.role != UserRole.READER) localUser.role else serverRole
             val entity = UserEntity(
                 id = response.userId,
                 email = response.email,
                 passwordHash = hashPassword(password),
                 firstName = response.firstName,
                 lastName = response.lastName,
-                role = role,
+                role = effectiveRole,
                 registrationDate = LocalDate.now(),
                 isSynced = true
             )
             userDao.insertOrReplace(entity)
             sessionManager.saveSession(
                 userId = response.userId,
-                role = role,
+                role = effectiveRole,
                 token = response.token,
                 firstName = response.firstName,
                 lastName = response.lastName,
@@ -87,21 +90,21 @@ class AuthRepository @Inject constructor(
                     phone = phone?.takeIf { it.isNotBlank() }
                 )
             )
-            val userRole = runCatching { UserRole.valueOf(response.role) }.getOrDefault(UserRole.READER)
+            // Server always creates READER — use the role the user chose during registration
             val entity = UserEntity(
                 id = response.userId,
                 email = response.email,
                 passwordHash = hashPassword(password),
                 firstName = response.firstName,
                 lastName = response.lastName,
-                role = userRole,
+                role = role,
                 registrationDate = LocalDate.now(),
                 isSynced = true
             )
             userDao.insertOrReplace(entity)
             sessionManager.saveSession(
                 userId = response.userId,
-                role = userRole,
+                role = role,
                 token = response.token,
                 firstName = response.firstName,
                 lastName = response.lastName,

@@ -35,7 +35,7 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val token = runBlocking { sessionManager.token.first() }
-                val request = if (token != null) {
+                val request = if (token != null && !token.startsWith("offline_")) {
                     chain.request().newBuilder()
                         .addHeader("Authorization", "Bearer $token")
                         .build()

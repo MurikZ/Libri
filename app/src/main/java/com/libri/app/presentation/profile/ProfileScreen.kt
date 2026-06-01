@@ -211,7 +211,7 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .height(52.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LogoutColor)
+                    colors = ButtonDefaults.buttonColors(containerColor = LogoutColor, contentColor = androidx.compose.ui.graphics.Color.White)
                 ) {
                     Icon(Icons.Default.ExitToApp, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
