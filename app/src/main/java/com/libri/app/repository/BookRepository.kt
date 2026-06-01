@@ -116,9 +116,13 @@ class BookRepository @Inject constructor(
     }
 
     suspend fun deleteBook(bookId: Long) {
-        bookApi.deleteBook(bookId)
+        try { bookApi.deleteBook(bookId) } catch (_: Exception) { /* delete locally even if server unavailable */ }
         val book = bookDao.getBook(bookId) ?: return
         bookDao.deleteBook(book)
+    }
+
+    suspend fun deleteInstance(instanceId: Long): Result<Unit> = runCatching {
+        bookInstanceDao.deleteById(instanceId)
     }
 
     suspend fun borrowBook(userId: Long, bookInstanceId: Long): Result<Unit> = runCatching {

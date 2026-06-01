@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,6 +26,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -198,10 +200,15 @@ fun BookDetailScreen(
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(vertical = 3.dp),
+                                            .padding(vertical = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        Text(inst.inventoryNumber, style = MaterialTheme.typography.bodySmall)
+                                        Text(
+                                            inst.inventoryNumber,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            modifier = Modifier.weight(1f)
+                                        )
                                         val (statusColor, statusLabel) = when (inst.status) {
                                             BookStatus.AVAILABLE -> Primary to "Доступен"
                                             BookStatus.ON_LOAN -> ErrorColor to "Выдан"
@@ -209,6 +216,14 @@ fun BookDetailScreen(
                                             else -> OnBackground.copy(0.4f) to inst.status.name
                                         }
                                         Text(statusLabel, style = MaterialTheme.typography.bodySmall, color = statusColor)
+                                        if (inst.status == BookStatus.AVAILABLE) {
+                                            IconButton(
+                                                onClick = { viewModel.deleteInstance(inst.id, bookId) },
+                                                colors = IconButtonDefaults.iconButtonColors(contentColor = ErrorColor)
+                                            ) {
+                                                Icon(Icons.Default.Delete, contentDescription = "Удалить экземпляр")
+                                            }
+                                        }
                                     }
                                 }
                             }

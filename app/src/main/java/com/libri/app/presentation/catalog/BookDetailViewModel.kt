@@ -88,8 +88,21 @@ class BookDetailViewModel @Inject constructor(
 
     fun deleteBook(bookId: Long) {
         viewModelScope.launch {
-            bookRepository.deleteBook(bookId)
-            _uiState.update { it.copy(isDeleted = true) }
+            runCatching { bookRepository.deleteBook(bookId) }
+                .onSuccess { _uiState.update { it.copy(isDeleted = true) } }
+                .onFailure { e -> _uiState.update { it.copy(error = e.message ?: "Ошибка удаления") } }
+        }
+    }
+
+    fun deleteInstance(instanceId: Long, bookId: Long) {
+        viewModelScope.launch {
+            bookRepository.deleteInstance(instanceId)
+                .onSuccess {
+                    val instances = bookRepository.getInstances(bookId)
+                    val book = bookRepository.getBook(bookId)
+                    _uiState.update { it.copy(instances = instances, book = book, message = "Экземпляр удалён") }
+                }
+                .onFailure { e -> _uiState.update { it.copy(error = e.message ?: "Ошибка удаления") } }
         }
     }
 

@@ -26,4 +26,7 @@ interface BookInstanceDao {
 
     @Update
     suspend fun update(instance: BookInstanceEntity)
+
+    @Query("DELETE FROM book_instances WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }
