@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -103,6 +104,27 @@ fun ProfileScreen(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                if (uiState.isOffline) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Default.WifiOff, contentDescription = null, tint = Color(0xFFE65100))
+                            Text(
+                                "Оффлайн-режим. Данные не синхронизированы с сервером.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFE65100)
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                }
                 uiState.user?.let { user ->
                     // Avatar
                     Box(

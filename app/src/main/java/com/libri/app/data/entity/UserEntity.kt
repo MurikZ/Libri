@@ -14,5 +14,6 @@ data class UserEntity(
     val phone: String? = null,
     val role: UserRole,
     val registrationDate: LocalDate,
-    val city: String? = null
+    val city: String? = null,
+    val isSynced: Boolean = true
 )

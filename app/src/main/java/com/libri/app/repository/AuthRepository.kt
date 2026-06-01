@@ -21,32 +21,50 @@ class AuthRepository @Inject constructor(
 ) {
     val currentUserId: Flow<Long?> = sessionManager.userId
     val currentUserRole: Flow<UserRole?> = sessionManager.userRole
+    val isOfflineSession: Flow<Boolean> = sessionManager.isOffline
 
-    suspend fun login(email: String, password: String): Result<UserEntity> = runCatching {
-        val response = authApi.login(LoginRequest(email.trim().lowercase(), password))
-        val role = runCatching { UserRole.valueOf(response.role) }.getOrDefault(UserRole.READER)
+    suspend fun login(email: String, password: String): Result<UserEntity> {
+        val normalizedEmail = email.trim().lowercase()
+        val onlineResult = runCatching {
+            val response = authApi.login(LoginRequest(normalizedEmail, password))
+            val role = runCatching { UserRole.valueOf(response.role) }.getOrDefault(UserRole.READER)
+            val entity = UserEntity(
+                id = response.userId,
+                email = response.email,
+                passwordHash = hashPassword(password),
+                firstName = response.firstName,
+                lastName = response.lastName,
+                role = role,
+                registrationDate = LocalDate.now(),
+                isSynced = true
+            )
+            userDao.insertOrReplace(entity)
+            sessionManager.saveSession(
+                userId = response.userId,
+                role = role,
+                token = response.token,
+                firstName = response.firstName,
+                lastName = response.lastName,
+                email = response.email
+            )
+            entity
+        }
+        if (onlineResult.isSuccess) return onlineResult
 
-        // кэшируем пользователя локально
-        val entity = UserEntity(
-            id = response.userId,
-            email = response.email,
-            passwordHash = "",
-            firstName = response.firstName,
-            lastName = response.lastName,
-            role = role,
-            registrationDate = LocalDate.now()
-        )
-        userDao.insertOrReplace(entity)
-
-        sessionManager.saveSession(
-            userId = response.userId,
-            role = role,
-            token = response.token,
-            firstName = response.firstName,
-            lastName = response.lastName,
-            email = response.email
-        )
-        entity
+        // оффлайн: ищем пользователя в локальной БД
+        return runCatching {
+            val local = userDao.login(normalizedEmail, hashPassword(password))
+                ?: error("Неверный email или пароль")
+            sessionManager.saveSession(
+                userId = local.id,
+                role = local.role,
+                token = "offline_${local.id}",
+                firstName = local.firstName,
+                lastName = local.lastName,
+                email = local.email
+            )
+            local
+        }
     }
 
     suspend fun register(
@@ -57,36 +75,71 @@ class AuthRepository @Inject constructor(
         phone: String?,
         city: String? = null,
         role: UserRole = UserRole.READER
-    ): Result<UserEntity> = runCatching {
-        val response = authApi.register(
-            RegisterRequest(
-                email = email.trim().lowercase(),
-                password = password,
+    ): Result<UserEntity> {
+        val normalizedEmail = email.trim().lowercase()
+        val onlineResult = runCatching {
+            val response = authApi.register(
+                RegisterRequest(
+                    email = normalizedEmail,
+                    password = password,
+                    firstName = firstName.trim(),
+                    lastName = lastName.trim(),
+                    phone = phone?.takeIf { it.isNotBlank() }
+                )
+            )
+            val userRole = runCatching { UserRole.valueOf(response.role) }.getOrDefault(UserRole.READER)
+            val entity = UserEntity(
+                id = response.userId,
+                email = response.email,
+                passwordHash = hashPassword(password),
+                firstName = response.firstName,
+                lastName = response.lastName,
+                role = userRole,
+                registrationDate = LocalDate.now(),
+                isSynced = true
+            )
+            userDao.insertOrReplace(entity)
+            sessionManager.saveSession(
+                userId = response.userId,
+                role = userRole,
+                token = response.token,
+                firstName = response.firstName,
+                lastName = response.lastName,
+                email = response.email
+            )
+            entity
+        }
+        if (onlineResult.isSuccess) return onlineResult
+
+        // оффлайн: сохраняем локально
+        return runCatching {
+            if (userDao.findByEmail(normalizedEmail) != null) {
+                error("Email уже зарегистрирован")
+            }
+            val entity = UserEntity(
+                id = 0,
+                email = normalizedEmail,
+                passwordHash = hashPassword(password),
                 firstName = firstName.trim(),
                 lastName = lastName.trim(),
-                phone = phone?.takeIf { it.isNotBlank() }
+                phone = phone?.takeIf { it.isNotBlank() },
+                role = role,
+                registrationDate = LocalDate.now(),
+                city = city?.takeIf { it.isNotBlank() },
+                isSynced = false
             )
-        )
-        val userRole = runCatching { UserRole.valueOf(response.role) }.getOrDefault(UserRole.READER)
-        val entity = UserEntity(
-            id = response.userId,
-            email = response.email,
-            passwordHash = "",
-            firstName = response.firstName,
-            lastName = response.lastName,
-            role = userRole,
-            registrationDate = LocalDate.now()
-        )
-        userDao.insertOrReplace(entity)
-        sessionManager.saveSession(
-            userId = response.userId,
-            role = userRole,
-            token = response.token,
-            firstName = response.firstName,
-            lastName = response.lastName,
-            email = response.email
-        )
-        entity
+            val localId = userDao.insert(entity)
+            val saved = entity.copy(id = localId)
+            sessionManager.saveSession(
+                userId = localId,
+                role = role,
+                token = "offline_$localId",
+                firstName = firstName.trim(),
+                lastName = lastName.trim(),
+                email = normalizedEmail
+            )
+            saved
+        }
     }
 
     suspend fun logout() = sessionManager.clearSession()

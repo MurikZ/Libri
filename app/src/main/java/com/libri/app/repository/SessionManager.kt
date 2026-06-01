@@ -27,6 +27,9 @@ class SessionManager @Inject constructor(
         prefs[USER_ROLE]?.let { runCatching { UserRole.valueOf(it) }.getOrNull() }
     }
     val token: Flow<String?> = dataStore.data.map { it[JWT_TOKEN] }
+    val isOffline: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[JWT_TOKEN]?.startsWith("offline_") == true
+    }
     val firstName: Flow<String?> = dataStore.data.map { it[USER_FIRST_NAME] }
     val lastName: Flow<String?> = dataStore.data.map { it[USER_LAST_NAME] }
     val email: Flow<String?> = dataStore.data.map { it[USER_EMAIL] }

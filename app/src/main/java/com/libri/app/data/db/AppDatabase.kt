@@ -3,6 +3,8 @@ package com.libri.app.data.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.libri.app.data.dao.BookDao
 import com.libri.app.data.dao.BookInstanceDao
 import com.libri.app.data.dao.FineDao
@@ -29,7 +31,7 @@ import com.libri.app.data.entity.UserEntity
         ReservationEntity::class,
         FineEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -40,4 +42,12 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun loanDao(): LoanDao
     abstract fun reservationDao(): ReservationDao
     abstract fun fineDao(): FineDao
+
+    companion object {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE users ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 1")
+            }
+        }
+    }
 }
