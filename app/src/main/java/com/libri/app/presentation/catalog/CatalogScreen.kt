@@ -49,10 +49,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.libri.app.data.entity.BookStatus
@@ -154,11 +156,11 @@ fun CatalogScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             if (uiState.isLoading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Primary)
                 }
             } else if (uiState.books.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("📚", fontSize = 48.sp)
                         Spacer(Modifier.height(8.dp))
@@ -167,6 +169,7 @@ fun CatalogScreen(
                 }
             } else {
                 LazyColumn(
+                    modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -206,7 +209,7 @@ fun BookCard(book: Book, onClick: () -> Unit) {
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            BookCoverPlaceholder(title = book.title, modifier = Modifier.size(56.dp, 72.dp))
+            BookCoverPlaceholder(title = book.title, coverUri = book.coverImageUri, modifier = Modifier.size(56.dp, 72.dp))
 
             Spacer(modifier = Modifier.width(12.dp))
 
@@ -238,7 +241,17 @@ fun BookCard(book: Book, onClick: () -> Unit) {
 }
 
 @Composable
-fun BookCoverPlaceholder(title: String, modifier: Modifier = Modifier) {
+fun BookCoverPlaceholder(title: String, coverUri: String? = null, modifier: Modifier = Modifier) {
+    if (!coverUri.isNullOrBlank()) {
+        AsyncImage(
+            model = coverUri,
+            contentDescription = title,
+            contentScale = ContentScale.Crop,
+            modifier = modifier.clip(RoundedCornerShape(6.dp))
+        )
+        return
+    }
+
     val colors = listOf(
         listOf(Color(0xFF8B7355), Color(0xFFA0522D)),
         listOf(Color(0xFF6D5A42), Color(0xFF8B7355)),

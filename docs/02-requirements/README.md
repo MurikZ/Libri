@@ -67,3 +67,9 @@ UC-04: Принять возврат
   Основной поток: LibrarianScreen → список активных выдач → returnBook()
   Постусловие: если просрочка — автоматически создаётся Fine (5 руб./день)
 ```
+
+## Диаграммы
+
+![Use Case диаграмма](../images/use_case_diagram.png)
+
+![Domain Model](../images/domain_model.png)

@@ -78,3 +78,19 @@ val palette = colors[title.hashCode().and(0x7FFFFFFF) % colors.size]
 ```
 
 Первая буква названия отображается белым жирным шрифтом поверх градиента.
+
+## Скриншоты
+
+![Экран входа](../images/screen-login.png)
+
+![Каталог книг](../images/screen-catalog.png)
+
+![Детали книги](../images/screen-detail.png)
+
+![Мои книги](../images/screen-mybooks.png)
+
+![Профиль](../images/screen-profile.png)
+
+![Панель администратора](../images/screen-librarian.png)
+
+![Swagger UI](../images/swagger-ui.png)

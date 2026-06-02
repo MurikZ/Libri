@@ -52,3 +52,11 @@ Librarian  LibrarianScreen  LibrarianVM   LoanRepository  LoanDao  BookInstanceD
     |            |               |<--Result.success                          |             |
     |            |<--"Книга принята"                                         |             |
 ```
+
+## Диаграммы
+
+![UC-004 Взять книгу](../images/sequence-uc004.png)
+
+![UC-005 Вернуть книгу](../images/sequence-uc005.png)
+
+![UC-011 Забронировать](../images/sequence-uc011.png)

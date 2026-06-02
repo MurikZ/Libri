@@ -77,3 +77,7 @@ fun hashPassword(password: String): String {
     return digest.digest(password.toByteArray()).joinToString("") { "%02x".format(it) }
 }
 ```
+
+## Диаграмма классов
+
+![Диаграмма классов проектирования](../images/class-diagram.png)

@@ -97,3 +97,9 @@ BookDetailScreen → BookDetailViewModel.reserve()
   ← Result<Unit>
 ← StateFlow обновляется → UI перерисовывается
 ```
+
+## Диаграммы
+
+![PCMEF диаграмма](../images/pcmef-diagram.png)
+
+![Диаграмма классов](../images/class-diagram.png)

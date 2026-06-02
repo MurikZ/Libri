@@ -51,9 +51,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.libri.app.data.entity.BookStatus
@@ -141,23 +143,48 @@ fun BookDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(200.dp)
-                                .background(Brush.verticalGradient(listOf(PrimaryVariant, Primary))),
-                            contentAlignment = Alignment.Center
+                                .background(Brush.verticalGradient(listOf(PrimaryVariant, Primary)))
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = book.title.firstOrNull()?.uppercase() ?: "?",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 64.sp
+                            if (!book.coverImageUri.isNullOrBlank()) {
+                                AsyncImage(
+                                    model = book.coverImageUri,
+                                    contentDescription = book.title,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
                                 )
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    text = book.authors.firstOrNull() ?: "",
-                                    color = Color.White.copy(0.8f),
-                                    fontSize = 13.sp
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            Brush.verticalGradient(
+                                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.45f))
+                                            )
+                                        )
                                 )
-                                Spacer(Modifier.height(8.dp))
+                            } else {
+                                Column(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = book.title.firstOrNull()?.uppercase() ?: "?",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 64.sp
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        text = book.authors.firstOrNull() ?: "",
+                                        color = Color.White.copy(0.8f),
+                                        fontSize = 13.sp
+                                    )
+                                }
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(bottom = 12.dp)
+                            ) {
                                 BookStatusChip(status = book.status)
                             }
                         }
