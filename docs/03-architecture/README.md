@@ -1,105 +1,19 @@
-# Архитектура PCMEF
+# Этап 2: Архитектурное проектирование
 
-Приложение Libri реализует **адаптированную архитектуру PCMEF** для мобильной разработки.
+**Недели:** 5–6 | **Вес:** 10%
 
-## Слои архитектуры
+## Диаграмма пакетов PCMEF
 
-| Слой PCMEF | Реализация в Android | Пакет |
-|---|---|---|
-| **Presentation** | Composable-экраны | `presentation/` |
-| **Control (State Management)** | ViewModel + StateFlow | `presentation/*/ViewModel` |
-| **Mediator** | Repository (бизнес-логика) | `repository/` |
-| **Entity** | Domain Models | `domain/model/` |
-| **Foundation** | Room DAO + SQLite | `data/` |
-
-## Правило зависимостей
-
-```
-Presentation → ViewModel → Repository → DAO → Room/SQLite
-```
-
-Зависимости направлены строго вниз. Нижние слои не знают о верхних.
-
-## PlantUML — Диаграмма пакетов
-
-```plantuml
-@startuml
-title Libri — Архитектура PCMEF (Mobile)
-
-package "Presentation" {
-  rectangle "CatalogScreen"
-  rectangle "BookDetailScreen"
-  rectangle "LoginScreen"
-  rectangle "RegisterScreen"
-  rectangle "MyBooksScreen"
-  rectangle "ProfileScreen"
-  rectangle "LibrarianScreen"
-}
-
-package "StateManagement (Control)" {
-  rectangle "CatalogViewModel"
-  rectangle "BookDetailViewModel"
-  rectangle "AuthViewModel"
-  rectangle "LoansViewModel"
-  rectangle "ProfileViewModel"
-  rectangle "LibrarianViewModel"
-  rectangle "MainViewModel"
-}
-
-package "Repository (Mediator)" {
-  rectangle "AuthRepository"
-  rectangle "BookRepository"
-  rectangle "LoanRepository"
-  rectangle "ReservationRepository"
-  rectangle "FineRepository"
-  rectangle "SessionManager"
-  rectangle "DataPreloader"
-}
-
-package "Foundation (Room)" {
-  rectangle "UserDao"
-  rectangle "BookDao"
-  rectangle "BookInstanceDao"
-  rectangle "LoanDao"
-  rectangle "ReservationDao"
-  rectangle "FineDao"
-}
-
-database "SQLite (libri_db)" as DB
-
-Presentation --> StateManagement
-StateManagement --> Repository
-Repository --> Foundation
-Foundation --> DB
-@enduml
-```
-
-## Потоки данных
-
-### Вход пользователя
-
-```
-LoginScreen → AuthViewModel.login()
-  → AuthRepository.login()
-    → UserDao.login() [Room query]
-    → SessionManager.saveSession() [DataStore]
-  ← Result<UserEntity>
-← SessionState.LoggedIn → навигация на Main
-```
-
-### Бронирование книги
-
-```
-BookDetailScreen → BookDetailViewModel.reserve()
-  → ReservationRepository.reserve()
-    → ReservationDao.insert() [Room]
-    → BookInstanceDao.update(RESERVED) [Room]
-  ← Result<Unit>
-← StateFlow обновляется → UI перерисовывается
-```
-
-## Диаграммы
+Архитектура разделена на два компонента. Мобильный клиент (Android): Presentation (Compose экраны) → State Management (ViewModel) → API Client (Retrofit + JWT) → Local Cache (Room). Сервер (Spring Boot): Control (Controllers) → Mediator (Services) → Entity (JPA) → Foundation (Repositories) → PostgreSQL. Клиент взаимодействует с сервером через REST API по HTTPS.
 
 ![PCMEF диаграмма](../images/pcmef-diagram.png)
 
+## Диаграмма классов проектирования
+
+Детализирует связи между слоями: CatalogScreen зависит от CatalogViewModel, который использует BookRepository. BookRepository работает одновременно с BookApi (сеть) и BookDao (кэш). Реализован паттерн Identity Map через LinkedHashMap в репозитории.
+
 ![Диаграмма классов](../images/class-diagram.png)
+
+## Интерфейсы и ADR
+
+[interfaces.md](interfaces.md) — контракты ILoanService, IBookService, ILoanRepository. Архитектурные решения: Kotlin+Compose, Room, Hilt, StateFlow, Spring Boot, JWT.

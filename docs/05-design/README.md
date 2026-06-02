@@ -1,62 +1,21 @@
-# Диаграммы последовательности
+# Этап 4: Детальное проектирование
 
-## SD-01: Вход в систему
+**Недели:** 9–10 | **Вес:** 10%
 
-```
-User        LoginScreen     AuthViewModel    AuthRepository   UserDao   SessionManager
- |              |                |                |              |            |
- |--email,pass->|                |                |              |            |
- |              |--login()------>|                |              |            |
- |              |                |--login()------>|              |            |
- |              |                |                |--query()---->|            |
- |              |                |                |<--UserEntity-|            |
- |              |                |                |--saveSession()----------->|
- |              |                |<--Result.success()                         |
- |              |<--isLoading=false                                           |
- | [MainViewModel наблюдает SessionState → LoggedIn]                         |
- |<--navigate to CatalogScreen                                               |
-```
+## UC-004: Взять книгу
 
-## SD-02: Бронирование книги
+Последовательность: LibrarianScreen → LoanViewModel → LoanRepository → проверка штрафов (FineDao) → проверка лимита (LoanDao) → атомарная транзакция: создание Loan + обновление статуса BookInstance на ON_LOAN.
 
-```
-User     BookDetailScreen  BookDetailVM    ReservationRepo   ReservationDao  BookInstanceDao
- |             |                |                |                  |               |
- |--tap Reserve|                |                |                  |               |
- |             |--reserve()---->|                |                  |               |
- |             |                |--reserve()---->|                  |               |
- |             |                |                |--findUserRes()--->|               |
- |             |                |                |<--null            |               |
- |             |                |                |--insert()-------->|               |
- |             |                |                |--findAvailable()---------------->|
- |             |                |                |<--instance        |               |
- |             |                |                |--update(RESERVED)--------------->|
- |             |                |<--Result.success                   |               |
- |             |<--message "Забронировано"                           |               |
-```
+![Диаграмма UC-004](../images/sequence-uc004.png)
 
-## SD-03: Возврат книги (с просрочкой)
+## UC-005: Вернуть книгу
 
-```
-Librarian  LibrarianScreen  LibrarianVM   LoanRepository  LoanDao  BookInstanceDao  FineDao
-    |            |               |               |            |            |             |
-    |--tap Return|               |               |            |            |             |
-    |            |--returnLoan()>|               |            |            |             |
-    |            |               |--returnBook()>|            |            |             |
-    |            |               |               |--findById()->|           |             |
-    |            |               |               |<--LoanEntity |           |             |
-    |            |               |               |--update(RETURNED)------->|             |
-    |            |               |               |--update(AVAILABLE)------->|            |
-    |            |               |               | [today > dueDate]         |             |
-    |            |               |               |--insert(Fine)-------------------------------->|
-    |            |               |<--Result.success                          |             |
-    |            |<--"Книга принята"                                         |             |
-```
+Последовательность: LibrarianScreen → LoanViewModel → LoanRepository → обновление Loan (RETURNED) + обновление BookInstance (AVAILABLE). Если returnDate > dueDate — автоматически создаётся Fine = дни × 5 руб. Все операции атомарны (@Transaction).
 
-## Диаграммы
+![Диаграмма UC-005](../images/sequence-uc005.png)
 
-![UC-004 Взять книгу](../images/sequence-uc004.png)
+## UC-011: Забронировать книгу
 
-![UC-005 Вернуть книгу](../images/sequence-uc005.png)
+Последовательность: BookDetailScreen → CatalogViewModel → ReservationRepository → проверка активных броней → создание Reservation(PENDING) с expiryDate = today + 3 дня + обновление статуса книги на RESERVED.
 
-![UC-011 Забронировать](../images/sequence-uc011.png)
+![Диаграмма UC-011](../images/sequence-uc011.png)
